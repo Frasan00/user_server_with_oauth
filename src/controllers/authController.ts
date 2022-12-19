@@ -1,14 +1,15 @@
 import User from "../database/User";
+import Session from "../database/Session";
 import bcrypt from "bcryptjs";
 import checkIfExists from "../utilities/checkIfExists";
 import tokenGenerator from "../utilities/tokenGenerator";
-import Session from "../database/Session";
+import { Request, Response } from "express";
 
 
-const register = async (req: any, res: any) => {
-    const { userName, password } = req.body();
+const register = async (req: Request, res: Response) => {
+    const { userName, password } = req.body;
 
-    if (await checkIfExists.checkSession(userName) == -1){
+    if (await checkIfExists.checkUser(userName) === -1){
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
     
@@ -23,13 +24,13 @@ const register = async (req: any, res: any) => {
 };
 
 
-const login = async (req: any, res: any) => {
-    const { userName, password } = req.body();
+const login = async (req: Request, res: Response) => {
+    const { userName, password } = req.body;
 
-    if (await checkIfExists.checkSession(userName) == -1){
+    if (await checkIfExists.checkSession(userName) === -1){
         // password check
-        const user = await User.findOne(userName);
-        if(!user || !user.password) return res.send("User does not exist");
+        const user = await User.findOne({userName: userName});
+        if(!user || !user.password) return res.status(404).send("User does not exist");
         const passwordComparison =  await bcrypt.compare(password, user.password);
         if (passwordComparison === false) return res.send("Passwords missmatch");
 
@@ -46,6 +47,13 @@ const login = async (req: any, res: any) => {
     }else return res.status(400).send("User already logged")
 };
 
-const logout = async (req: any, res: any) => {
+const logout = async (req: Request, res: Response) => {
+    const userName: string = req.body.userName;
+    if(!userName) return res.status(400).send("User not logged in");
 
+    const sessionToDelete = await Session.findOneAndDelete({userName: userName});
+    if(!sessionToDelete) return res.status(400).send("User not logged in");
+    else return res.send("User logged out");
 };
+
+export default { register, login, logout };

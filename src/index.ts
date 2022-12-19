@@ -1,8 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
 import userRoute from "./routes/userRoute";
-import dotenv from "dotenv/config";
+import dotenv from "dotenv";
 
+const configuration = dotenv.config()
 const PORT = process.env.PORT;
 const app = express();
 
@@ -18,5 +19,5 @@ app.get("*", (req, res) => {
     res.send("Resource not available")
 });
 
-app.listen(() => console.log("Listening on port "+PORT));
+app.listen(PORT, () => console.log("Listening on port "+PORT));
 
