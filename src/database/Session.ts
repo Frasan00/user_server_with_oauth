@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
+const sessionSchema = new mongoose.Schema({
     userName: {
         type: String,
         require: true
     },
-    password: {
+    token: {
         type: String,
         require: true
     },
 });
 
-const User = mongoose.model("User", userSchema);
-export default User;
+const Session = mongoose.model("Session", sessionSchema);
+export default Session;
