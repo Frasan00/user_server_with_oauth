@@ -8,43 +8,42 @@ import { Request, Response } from "express";
 
 const register = async (req: Request, res: Response) => {
     const { userName, password } = req.body;
+    const checkUser = await checkIfExists.checkUser(userName);
+    if (checkUser) return res.status(400).send("User already registed");
 
-    if (await checkIfExists.checkUser(userName) === -1){
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
     
-        const newUser = new User({
-            userName: userName,
-            password: hashedPassword
-        });
-        const saveUser = newUser.save();
-        res.send("User registed!");
+    const newUser = new User({
+        userName: userName,
+        password: hashedPassword
+    });
 
-    }else return res.status(400).send("User already registed")
+    const saveUser = newUser.save();
+    res.send("User registed!");
 };
 
 
 const login = async (req: Request, res: Response) => {
     const { userName, password } = req.body;
+    const checkUser = await checkIfExists.checkSession(userName);
+    if (checkUser) return res.status(400).send("User already logged")
 
-    if (await checkIfExists.checkSession(userName) === -1){
-        // password check
-        const user = await User.findOne({userName: userName});
-        if(!user || !user.password) return res.status(404).send("User does not exist");
-        const passwordComparison =  await bcrypt.compare(password, user.password);
-        if (passwordComparison === false) return res.send("Passwords missmatch");
+    // password check
+    const user = await User.findOne({userName: userName});
+    if(!user || !user.password) return res.status(404).send("User does not exist");
+    const passwordComparison =  await bcrypt.compare(password, user.password);
+    if (passwordComparison === false) return res.send("Passwords missmatch");
 
-        // session generation
-        const token = tokenGenerator(userName);
-        if (token === -1) return res.status(400).send("Secret key not present for token generation");
-        const session = new Session({
-            userName: userName,
-            token: token
-        });
-        const saveSession = await session.save();
-        res.send("User logged");
-
-    }else return res.status(400).send("User already logged")
+    // session generation
+    const token = tokenGenerator(userName);
+    if (token === -1) return res.status(400).send("Secret key not present for token generation");
+    const session = new Session({
+        userName: userName,
+        token: token
+    });
+    const saveSession = await session.save();
+    res.send("User logged");
 };
 
 const logout = async (req: Request, res: Response) => {
@@ -53,7 +52,7 @@ const logout = async (req: Request, res: Response) => {
 
     const sessionToDelete = await Session.findOneAndDelete({userName: userName});
     if(!sessionToDelete) return res.status(400).send("User not logged in");
-    else return res.send("User logged out");
+    return res.send("User logged out");
 };
 
 export default { register, login, logout };
