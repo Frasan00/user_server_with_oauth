@@ -2,13 +2,11 @@ import Session from "../database/Session";
 import User from "../database/User";
 
 function checkSession (userName: string){
-    const check = Session.findOne({userName: userName});
-    return check;
+    return Session.findOne({userName: userName});
 };
 
 function checkUser (userName: string){
-    const check = User.findOne({userName: userName});
-    return check;
+    return User.findOne({userName: userName});
 };
 
 export default {checkSession, checkUser};
